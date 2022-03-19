@@ -22,7 +22,7 @@ const Room = ({ room }) => {
 					<Text style={{ color: "white" }}>Send</Text>
 				</TouchableOpacity>
 			</View>
-			<Text>URL: {`${host}/company/${room.companySlug}/room/${room.unique_name}`}</Text>
+			<Text>URL: {`${hostSocketIO}/company/${room.companySlug}/room/${room.unique_name}`}</Text>
 		</View>
 	);
 };
