@@ -1,17 +1,22 @@
 import { Text, View, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { host } from "../Constants";
+import { AppContext } from "../context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AUTH } from "../Constants";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const Settings = ({ navigation }) => {
 	const [companies, setCompanies] = useState([]);
+	const user = useContext(AppContext);
 
 	const getCompanies = async () => {
 		try {
 			const response = await fetch(host + "/company/byemail", {
-				method: "GET",
-				credentials: "include",
+				method: "POST",
 				headers: { Accept: "application/json", "Content-Type": "application/json" },
+				body: JSON.stringify({ user: user.user }),
 			});
 			return await response.json();
 		} catch (error) {
@@ -19,18 +24,12 @@ const Settings = ({ navigation }) => {
 		}
 	};
 
-	useEffect(async () => {
-		const com = await getCompanies();
-		await setCompanies(com);
-	}, []);
-
-	const selectCompany = async (companyID) => {
-		if (companyID !== "") {
+	const selectCompany = async (companyId) => {
+		if (companyId !== "") {
 			try {
-				// setting company id in backend
-				const response = await fetch(host + "/admin/session/company/" + companyID, {
+				await AsyncStorage.setItem("companyId", companyId);
+				const response = await fetch(host + "/admin/session/company/" + companyId, {
 					method: "GET",
-					credentials: "include",
 					headers: { Accept: "application/json", "Content-Type": "application/json" },
 				});
 				let result = await response.json();
@@ -41,6 +40,11 @@ const Settings = ({ navigation }) => {
 			}
 		}
 	};
+
+	useEffect(async () => {
+		const companies = await getCompanies();
+		await setCompanies(companies);
+	}, []);
 
 	return (
 		<View style={{ alignItems: "center", justifyContent: "center" }}>

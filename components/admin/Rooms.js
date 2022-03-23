@@ -1,6 +1,8 @@
 import { Text, View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { host } from "../../Constants";
+import { AppContext } from "../../context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Room = ({ r }) => {
 	const [room, setRoom] = useState(r);
@@ -9,7 +11,7 @@ const Room = ({ r }) => {
 		try {
 			const response = await fetch(host + "/room/" + room.id, {
 				method: "POST",
-				credentials: "include",
+
 				headers: { Accept: "application/json", "Content-Type": "application/json" },
 				body: JSON.stringify(room),
 			});
@@ -35,7 +37,7 @@ const Room = ({ r }) => {
 				<TextInput
 					style={styles.input}
 					value={room.unique_name}
-					onChangeText={(v) => setRoom({ ...room, unique_name: v })}
+					onChangeText={(v) => setRoom({ ...room, unique_name: v.replace(/\s/g, "") })}
 				></TextInput>
 			</View>
 			<View style={{ justifyContent: "center", flexDirection: "row" }}>
@@ -52,12 +54,14 @@ const Room = ({ r }) => {
 
 const Rooms = () => {
 	const [rooms, setRooms] = useState([]);
+	const user = useContext(AppContext);
 	const getRooms = async () => {
 		try {
-			const response = await fetch(host + "/room/admin/company", {
-				method: "GET",
-				credentials: "include",
+			const companyId = await AsyncStorage.getItem("companyId");
+			const response = await fetch(host + "/room/admin/admCompany", {
+				method: "POST",
 				headers: { Accept: "application/json", "Content-Type": "application/json" },
+				body: JSON.stringify({ companyId: companyId, user: user.user }),
 			});
 			return await response.json();
 		} catch (error) {

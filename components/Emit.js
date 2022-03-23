@@ -1,40 +1,74 @@
-import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useContext, useEffect, useState } from "react";
+import { ScrollView, StyleSheet, Text, TextInput, TouchableHighlight, TouchableOpacity, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Linking from "expo-linking";
+import { AppContext } from "../context";
 import { io } from "socket.io-client";
 import { host } from "../Constants";
 import { hostSocketIO } from "../Constants";
-// const socket = io("localhost:3000");
 const socket = io(hostSocketIO);
-
-//zelli_sala1
+// const socket = io("localhost:3000");
 
 const Room = ({ room }) => {
-	const [value, setValue] = useState("");
+	const url = `http://${hostSocketIO}/company/${room.companySlug}/room/${room.unique_name}`;
+	const [value, setValue] = useState(room.currentNumber);
 	const roomName = room.companySlug + "_" + room.unique_name;
-	const emitValue = () => socket.emit("emmitToRoom", { room: roomName, value: value });
+	const openUrl = () => Linking.openURL(url);
+	const addition = () => setValue(value + 1);
+	const subtraction = () => setValue(value - 1);
 
+	const emitValue = async () => {
+		try {
+			const response = await fetch(host + "/room/" + room.unique_name + "/current", {
+				method: "POST",
+				headers: { Accept: "application/json", "Content-Type": "application/json" },
+				body: JSON.stringify({ number: value }),
+			});
+
+			socket.emit("emmitToRoom", { room: roomName, value: value });
+			return await response.json();
+		} catch (error) {
+			console.log(error);
+		}
+	};
+
+	useEffect(emitValue, [value]);
 	return (
 		<View>
 			<View style={styles.roomContainer}>
-				<Text style={{ margin: 10, width: "30%" }}>{room.name}</Text>
-				<TextInput style={styles.input} value={value} onChangeText={setValue} />
-				<TouchableOpacity style={styles.sendButton} onPress={emitValue}>
-					<Text style={{ color: "white" }}>Send</Text>
-				</TouchableOpacity>
+				<Text style={{ fontSize: 30, color: "#fff", marginBottom: 10 }}>{room.name}</Text>
+				<View style={{ marginBottom: 20, flexDirection: "row", marginBottom: 10 }}>
+					<Text style={{ color: "#fff" }}>URL: </Text>
+					<TouchableHighlight onPress={openUrl}>
+						<Text style={{ color: "#fff", textDecorationLine: "underline" }}>{url}</Text>
+					</TouchableHighlight>
+				</View>
+				<Text style={{ color: "#fff", marginBottom: 10 }}>Last generated number {room.lastNumber}</Text>
+				<View style={{ flexDirection: "row", alignItems: "center" }}>
+					<Text style={{ color: "#fff" }}>Current Number: </Text>
+					<TouchableOpacity style={styles.sendButton} onPress={subtraction}>
+						<Text>-</Text>
+					</TouchableOpacity>
+					<TextInput style={styles.input} value={value} editable={false} />
+					<TouchableOpacity style={styles.sendButton} onPress={addition}>
+						<Text>+</Text>
+					</TouchableOpacity>
+				</View>
 			</View>
-			<Text>URL: {`${hostSocketIO}/company/${room.companySlug}/room/${room.unique_name}`}</Text>
 		</View>
 	);
 };
 
 const Emit = () => {
+	const user = useContext(AppContext);
 	const [rooms, setRooms] = useState([]);
 	const getRooms = async () => {
 		try {
-			const response = await fetch(host + "/room/user/company", {
-				method: "GET",
-				credentials: "include",
+			const companyId = await AsyncStorage.getItem("companyId");
+			const response = await fetch(host + "/room/user/company/" + companyId, {
+				method: "POST",
 				headers: { Accept: "application/json", "Content-Type": "application/json" },
+				body: JSON.stringify({ user: user.user }),
 			});
 			return await response.json();
 		} catch (error) {
@@ -49,11 +83,13 @@ const Emit = () => {
 
 	return (
 		<ScrollView contentContainerStyle={{ alignItems: "center" }}>
-			<View style={styles.cardContainer}>
-				{rooms.map((room) => {
-					return <Room key={room.id} room={room} />;
-				})}
-			</View>
+			{rooms.map((room) => {
+				return (
+					<View key={room.id} style={styles.cardContainer}>
+						<Room room={room} />
+					</View>
+				);
+			})}
 		</ScrollView>
 	);
 };
@@ -61,8 +97,8 @@ const Emit = () => {
 const styles = StyleSheet.create({
 	cardContainer: {
 		width: "95%",
-		maxWidth: 640,
-		backgroundColor: "white",
+		maxWidth: 400,
+		backgroundColor: "#2DA6E6",
 		padding: 30,
 		margin: 10,
 		shadowColor: "#000",
@@ -76,21 +112,20 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 	},
 	roomContainer: {
-		flexDirection: "row",
 		justifyContent: "space-between",
 		marginBottom: 10,
 	},
 	input: {
-		width: "40%",
+		width: 60,
 		height: 40,
-		borderWidth: 1,
-		borderRadius: 5,
+		backgroundColor: "#5DBDF2",
+		color: "#fff",
+		textAlign: "center",
 	},
 	sendButton: {
-		backgroundColor: "black",
-		borderRadius: 5,
+		backgroundColor: "#fff",
 		height: 40,
-		width: 80,
+		width: 40,
 		alignItems: "center",
 		justifyContent: "center",
 	},

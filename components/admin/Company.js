@@ -1,16 +1,20 @@
 import { Text, View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { host } from "../../Constants";
+import { AppContext } from "../../context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Company = () => {
 	const [company, setCompany] = useState({ name: "", slug: "" });
-
+	const user = useContext(AppContext);
 	const getCompanies = async () => {
 		try {
-			const response = await fetch(host + "/company", {
-				method: "GET",
-				credentials: "include",
+			console.log(user);
+			const companyId = await AsyncStorage.getItem("companyId");
+			const response = await fetch(host + "/company/byId", {
+				method: "POST",
 				headers: { Accept: "application/json", "Content-Type": "application/json" },
+				body: JSON.stringify({ user: user.user, companyId: companyId }),
 			});
 			return await response.json();
 		} catch (error) {
@@ -25,11 +29,11 @@ const Company = () => {
 
 	const updateCompany = async () => {
 		try {
+			const companyId = await AsyncStorage.getItem("companyId");
 			const response = await fetch(host + "/company", {
 				method: "POST",
-				credentials: "include",
 				headers: { Accept: "application/json", "Content-Type": "application/json" },
-				body: JSON.stringify(company),
+				body: JSON.stringify({ companyId: companyId, data: company }),
 			});
 			alert("done");
 			return await response.json();
