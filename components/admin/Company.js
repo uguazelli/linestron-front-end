@@ -9,7 +9,6 @@ const Company = () => {
 	const user = useContext(AppContext);
 	const getCompanies = async () => {
 		try {
-			console.log(user);
 			const companyId = await AsyncStorage.getItem("companyId");
 			const response = await fetch(host + "/company/byId", {
 				method: "POST",
@@ -44,23 +43,23 @@ const Company = () => {
 
 	return (
 		<View style={styles.cardContainer}>
-			<View style={{ flexDirection: "row", marginBottom: 10 }}>
-				<Text style={{ margin: 10, width: "20%" }}>Company Name</Text>
+			<View style={{ marginBottom: 10 }}>
+				<Text style={{ marginBottom: 10 }}>Company Name</Text>
 				<TextInput
 					style={styles.input}
 					value={company.name}
 					onChangeText={(v) => setCompany({ ...company, name: v })}
 				/>
 			</View>
-			<View style={{ flexDirection: "row", marginBottom: 10 }}>
-				<Text style={{ margin: 10, width: "20%" }}>Slug</Text>
+			<View style={{ marginBottom: 10 }}>
+				<Text style={{ marginBottom: 10 }}>Slug</Text>
 				<TextInput
 					style={styles.input}
 					value={company.slug}
 					onChangeText={(v) => setCompany({ ...company, slug: v })}
 				/>
 			</View>
-			<View style={{ alignItems: "center" }}>
+			<View style={{ width: "100%", justifyContent: "flex-end", flexDirection: "row", marginRight: 30 }}>
 				<TouchableOpacity style={styles.sendButton} onPress={updateCompany}>
 					<Text style={{ color: "white" }}>Save</Text>
 				</TouchableOpacity>
@@ -72,7 +71,7 @@ const Company = () => {
 const styles = StyleSheet.create({
 	cardContainer: {
 		width: "95%",
-		maxWidth: 640,
+		maxWidth: 480,
 		backgroundColor: "white",
 		padding: 30,
 		margin: 10,
@@ -87,13 +86,15 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 	},
 	input: {
-		width: "80%",
+		width: "100%",
 		height: 40,
 		borderWidth: 1,
 		borderRadius: 5,
+		borderColor: "#CCCCCC",
+		paddingLeft: 10,
 	},
 	sendButton: {
-		backgroundColor: "black",
+		backgroundColor: "#41BAEE",
 		borderRadius: 5,
 		height: 40,
 		width: 80,

@@ -1,38 +1,47 @@
-import { Text, View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { Text, View, StyleSheet, TextInput, TouchableOpacity, Switch } from "react-native";
 import { useContext, useEffect, useState } from "react";
 import { host } from "../../Constants";
 import { AppContext } from "../../context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const Room = ({ r, rooms, setRooms }) => {
-	const [room, setRoom] = useState(r);
+const User = ({ u, users, setUsers }) => {
+	const [user, setUser] = useState(u);
+	const [isAdmin, setIsAdmin] = useState(user.role == "admin" ? true : false);
+	const toggleSwitch = () => {
+		const r = isAdmin ? "user" : "admin"; //set the oposite of current
+		setUser({ ...user, role: r });
+		setIsAdmin((previousState) => !previousState);
+	};
 
-	const updateRoom = async () => {
-		const companyId = await AsyncStorage.getItem("companyId");
-		room.companyId = companyId;
+	const updateUser = async () => {
 		try {
-			const response = await fetch(host + "/room/" + room.id, {
-				method: "POST",
+			const companyId = await AsyncStorage.getItem("companyId");
+			const response = await fetch(host + "/user", {
+				method: "PUT",
 				headers: { Accept: "application/json", "Content-Type": "application/json" },
-				body: JSON.stringify(room),
+				body: JSON.stringify({ id: user.id, email: user.email, role: user.role, companyId: companyId }),
 			});
-			const newRoomArray = rooms.filter((element) => element.id !== room.id);
 			const result = await response.json();
-			const newRoom = { id: result.lastInsertRowid, name: room.name, unique_name: room.unique_name };
-			setRooms(() => [...newRoomArray, newRoom]);
+			const newUserArray = users.filter((element) => element.id !== user.id);
+			const newUser = { id: result[0].lastInsertRowid, email: user.email, role: user.role };
+			setUsers([...newUserArray, newUser]);
 			alert("done");
 		} catch (error) {
 			console.log(error);
 		}
 	};
 
-	const deleteRoom = async () => {
+	const deleteUser = async () => {
 		try {
-			const response = await fetch(host + "/room/" + room.id, {
+			const companyId = await AsyncStorage.getItem("companyId");
+			const response = await fetch(host + "/user", {
 				method: "DELETE",
 				headers: { Accept: "application/json", "Content-Type": "application/json" },
+				body: JSON.stringify({ id: user.id, company_id: companyId }),
 			});
-			setRooms(rooms.filter((element) => element.id !== room.id));
+			setUsers(users.filter((element) => element.id !== u.id));
+			const result = await response.json();
+			console.log(result);
 		} catch (error) {
 			console.log(error);
 		}
@@ -41,31 +50,31 @@ const Room = ({ r, rooms, setRooms }) => {
 	return (
 		<View style={{ marginBottom: 10 }}>
 			<View style={{ marginBottom: 10 }}>
-				<Text style={{ margin: 10 }}>Room Name</Text>
-				<TextInput
-					style={styles.input}
-					value={room.name}
-					onChangeText={(v) => setRoom({ ...room, name: v })}
-				></TextInput>
+				<Text style={{ marginBottom: 10 }}>User email</Text>
+				<TextInput style={styles.input} value={user.email} onChangeText={(v) => setUser({ ...user, email: v })} />
 			</View>
 			<View style={{ marginBottom: 10 }}>
-				<Text style={{ margin: 10 }}>unique_name</Text>
-				<TextInput
-					style={styles.input}
-					value={room.unique_name}
-					onChangeText={(v) => setRoom({ ...room, unique_name: v.replace(/\s/g, "") })}
-				></TextInput>
+				<Text style={{ marginBottom: 10 }}>Is User Admin?</Text>
+				{/* <TextInput style={styles.input} value={user.role} onChangeText={(v) => setUser({ ...user, role: v })} /> */}
+
+				<Switch
+					trackColor={{ false: "#767577", true: "#81b0ff" }}
+					thumbColor={isAdmin ? "#f5dd4b" : "#f4f3f4"}
+					ios_backgroundColor="#3e3e3e"
+					onValueChange={toggleSwitch}
+					value={isAdmin}
+				/>
 			</View>
 			<View style={{ width: "100%", justifyContent: "flex-end", flexDirection: "row", marginRight: 30 }}>
 				<TouchableOpacity
 					style={[styles.sendButton, { marginRight: 5, backgroundColor: "#41BAEE" }]}
-					onPress={updateRoom}
+					onPress={updateUser}
 				>
 					<Text style={{ color: "white" }}>Save</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
 					style={[styles.sendButton, { marginRight: 5, backgroundColor: "#AB433F" }]}
-					onPress={deleteRoom}
+					onPress={deleteUser}
 				>
 					<Text style={{ color: "white" }}>Delete</Text>
 				</TouchableOpacity>
@@ -74,21 +83,20 @@ const Room = ({ r, rooms, setRooms }) => {
 	);
 };
 
-const Rooms = () => {
-	const [rooms, setRooms] = useState([]);
-	const user = useContext(AppContext);
+const Users = () => {
+	const [users, setUsers] = useState([]);
 
-	const addNewRoom = () => {
-		const newRoom = { id: 0, name: "", unique_name: "" };
-		if (rooms.find((r) => r.id == 0) === undefined) setRooms((rooms) => [...rooms, newRoom]);
+	const addNewUser = () => {
+		const newUser = { id: 0, email: "", role: "user" };
+		if (users.find((u) => u.id == 0) === undefined) setUsers((users) => [...users, newUser]);
 	};
-	const getRooms = async () => {
+
+	const getUsers = async () => {
 		try {
 			const companyId = await AsyncStorage.getItem("companyId");
-			const response = await fetch(host + "/room/admin/admCompany", {
+			const response = await fetch(host + "/user/company/" + companyId, {
 				method: "POST",
 				headers: { Accept: "application/json", "Content-Type": "application/json" },
-				body: JSON.stringify({ companyId: companyId, user: user.user }),
 			});
 			return await response.json();
 		} catch (error) {
@@ -97,19 +105,18 @@ const Rooms = () => {
 	};
 
 	useEffect(async () => {
-		const r = await getRooms();
-		setRooms(r);
+		let u = await getUsers();
+		setUsers(u);
 	}, []);
 
 	return (
 		<View style={styles.cardContainer}>
-			{rooms.map((r) => {
-				return <Room key={r.id} r={r} rooms={rooms} setRooms={setRooms} />;
+			{users.map((u) => {
+				return <User key={u.id} u={u} users={users} setUsers={setUsers} />;
 			})}
-
 			<View style={{ width: "100%", justifyContent: "center", flexDirection: "row", marginTop: 30 }}>
 				<TouchableOpacity
-					onPress={addNewRoom}
+					onPress={addNewUser}
 					style={{
 						backgroundColor: "#43D95D",
 						borderRadius: 50,
@@ -152,6 +159,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 10,
 	},
 	sendButton: {
+		backgroundColor: "black",
 		borderRadius: 5,
 		height: 40,
 		width: 80,
@@ -160,4 +168,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default Rooms;
+export default Users;

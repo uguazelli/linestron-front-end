@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableHighlight, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Linking from "expo-linking";
+
 import { AppContext } from "../context";
 import { io } from "socket.io-client";
 import { host } from "../Constants";
@@ -13,7 +13,7 @@ const Room = ({ room }) => {
 	const url = `http://${hostSocketIO}/company/${room.companySlug}/room/${room.unique_name}`;
 	const [value, setValue] = useState(room.currentNumber);
 	const roomName = room.companySlug + "_" + room.unique_name;
-	const openUrl = () => Linking.openURL(url);
+
 	const addition = () => setValue(value + 1);
 	const subtraction = () => setValue(value - 1);
 
@@ -36,23 +36,24 @@ const Room = ({ room }) => {
 	return (
 		<View>
 			<View style={styles.roomContainer}>
-				<Text style={{ fontSize: 30, color: "#fff", marginBottom: 10 }}>{room.name}</Text>
-				<View style={{ marginBottom: 20, flexDirection: "row", marginBottom: 10 }}>
-					<Text style={{ color: "#fff" }}>URL: </Text>
-					<TouchableHighlight onPress={openUrl}>
-						<Text style={{ color: "#fff", textDecorationLine: "underline" }}>{url}</Text>
-					</TouchableHighlight>
+				<Text style={{ fontSize: 30, marginBottom: 10 }}>{room.name}</Text>
+				<View style={{ marginBottom: 10 }}>
+					<Text>URL </Text>
+					<TextInput editable={false} style={styles.input} value={url} />
 				</View>
-				<Text style={{ color: "#fff", marginBottom: 10 }}>Last generated number {room.lastNumber}</Text>
-				<View style={{ flexDirection: "row", alignItems: "center" }}>
-					<Text style={{ color: "#fff" }}>Current Number: </Text>
-					<TouchableOpacity style={styles.sendButton} onPress={subtraction}>
-						<Text>-</Text>
-					</TouchableOpacity>
-					<TextInput style={styles.input} value={value} editable={false} />
-					<TouchableOpacity style={styles.sendButton} onPress={addition}>
-						<Text>+</Text>
-					</TouchableOpacity>
+				<Text style={{ marginBottom: 10 }}>Last generated number </Text>
+				<TextInput editable={false} style={styles.input} value={room.lastNumber} />
+				<View style={{ marginTop: 10 }}>
+					<Text>Current Number: </Text>
+					<View style={{ flexDirection: "row", marginTop: 10 }}>
+						<TouchableOpacity style={styles.setValueButton} onPress={subtraction}>
+							<Text style={{ color: "#fff" }}>-</Text>
+						</TouchableOpacity>
+						<TextInput style={styles.setValueInput} value={value} editable={false} />
+						<TouchableOpacity style={styles.setValueButton} onPress={addition}>
+							<Text style={{ color: "#fff" }}>+</Text>
+						</TouchableOpacity>
+					</View>
 				</View>
 			</View>
 		</View>
@@ -97,8 +98,8 @@ const Emit = () => {
 const styles = StyleSheet.create({
 	cardContainer: {
 		width: "95%",
-		maxWidth: 400,
-		backgroundColor: "#2DA6E6",
+		backgroundColor: "#fff",
+		maxWidth: 480,
 		padding: 30,
 		margin: 10,
 		shadowColor: "#000",
@@ -116,14 +117,23 @@ const styles = StyleSheet.create({
 		marginBottom: 10,
 	},
 	input: {
-		width: 60,
+		width: "100%",
 		height: 40,
-		backgroundColor: "#5DBDF2",
-		color: "#fff",
-		textAlign: "center",
+		borderWidth: 1,
+		borderRadius: 5,
+		borderColor: "#CCCCCC",
+		backgroundColor: "#F2F2F2",
+		paddingLeft: 10,
 	},
-	sendButton: {
-		backgroundColor: "#fff",
+	setValueInput: {
+		width: 80,
+		height: 40,
+		backgroundColor: "#F2F2F2",
+		textAlign: "center",
+		fontSize: 14,
+	},
+	setValueButton: {
+		backgroundColor: "#43D95D",
 		height: 40,
 		width: 40,
 		alignItems: "center",
