@@ -4,8 +4,6 @@ import { useContext, useEffect, useState } from "react";
 import { host } from "../Constants";
 import { AppContext } from "../context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AUTH } from "../Constants";
-import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const Settings = ({ navigation }) => {
 	const [companies, setCompanies] = useState([]);
@@ -27,7 +25,7 @@ const Settings = ({ navigation }) => {
 	const selectCompany = async (companyId) => {
 		if (companyId !== "") {
 			try {
-				await AsyncStorage.setItem("companyId", companyId);
+				await AsyncStorage.setItem("companyId", companyId.toString());
 				const response = await fetch(host + "/admin/session/company/" + companyId, {
 					method: "GET",
 					headers: { Accept: "application/json", "Content-Type": "application/json" },

@@ -1,18 +1,39 @@
 import { useContext, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableHighlight, TouchableOpacity, View } from "react-native";
+import {
+	ScrollView,
+	StyleSheet,
+	Text,
+	TextInput,
+	TouchableHighlight,
+	TouchableOpacity,
+	View,
+	Modal,
+	Pressable,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import Clipboard from "@react-native-clipboard/clipboard";
 import { AppContext } from "../context";
 import { io } from "socket.io-client";
 import { host } from "../Constants";
 import { hostSocketIO } from "../Constants";
 const socket = io(hostSocketIO);
 // const socket = io("localhost:3000");
+import { useToast } from "react-native-toast-notifications";
+import QRCode from "react-native-qrcode-svg";
 
 const Room = ({ room }) => {
+	const toast = useToast();
 	const url = `http://${hostSocketIO}/company/${room.companySlug}/room/${room.unique_name}`;
 	const [value, setValue] = useState(room.currentNumber);
+	const [modalVisible, setModalVisible] = useState(false);
 	const roomName = room.companySlug + "_" + room.unique_name;
+
+	const copyToClipboard = () => {
+		toast.show("Copied to clipboard", {
+			placement: "top",
+		});
+		Clipboard.setString(url);
+	};
 
 	const addition = () => setValue(value + 1);
 	const subtraction = () => setValue(value - 1);
@@ -36,20 +57,51 @@ const Room = ({ room }) => {
 	return (
 		<View>
 			<View style={styles.roomContainer}>
-				<Text style={{ fontSize: 30, marginBottom: 10 }}>{room.name}</Text>
-				<View style={{ marginBottom: 10 }}>
-					<Text>URL </Text>
-					<TextInput editable={false} style={styles.input} value={url} />
+				<Modal
+					animationType="slide"
+					transparent={true}
+					visible={modalVisible}
+					onRequestClose={() => {
+						setModalVisible(!modalVisible);
+					}}
+				>
+					<View style={styles.centeredView}>
+						<View style={styles.modalView}>
+							<View style={{ marginBottom: 30 }}>
+								<QRCode value={url} size={300} />
+							</View>
+
+							<Pressable onPress={() => setModalVisible(!modalVisible)}>
+								<Text style={{ fontSize: 20, color: "red" }}>Close</Text>
+							</Pressable>
+						</View>
+					</View>
+				</Modal>
+
+				<View style={{ marginBottom: 30 }}>
+					<Text style={{ fontSize: 30, marginBottom: 10 }}>{room.name}</Text>
+					<TouchableOpacity style={{ marginBottom: 10 }} onPress={copyToClipboard}>
+						<Text>URL</Text>
+						<TextInput editable={false} style={styles.input} value={url} />
+					</TouchableOpacity>
+
+					<Pressable style={styles.sendButton} onPress={() => setModalVisible(true)}>
+						<Text style={{ color: "#fff" }}>Show QR</Text>
+					</Pressable>
 				</View>
-				<Text style={{ marginBottom: 10 }}>Last generated number </Text>
-				<TextInput editable={false} style={styles.input} value={room.lastNumber} />
+
+				<View style={{ marginBottom: 30 }}>
+					<Text style={{ marginBottom: 10 }}>Last generated number </Text>
+					<TextInput editable={false} style={styles.input} value={room.lastNumber.toString()} />
+				</View>
+
 				<View style={{ marginTop: 10 }}>
 					<Text>Current Number: </Text>
 					<View style={{ flexDirection: "row", marginTop: 10 }}>
 						<TouchableOpacity style={styles.setValueButton} onPress={subtraction}>
 							<Text style={{ color: "#fff" }}>-</Text>
 						</TouchableOpacity>
-						<TextInput style={styles.setValueInput} value={value} editable={false} />
+						<TextInput style={styles.setValueInput} value={value.toString()} editable={false} />
 						<TouchableOpacity style={styles.setValueButton} onPress={addition}>
 							<Text style={{ color: "#fff" }}>+</Text>
 						</TouchableOpacity>
@@ -96,6 +148,28 @@ const Emit = () => {
 };
 
 const styles = StyleSheet.create({
+	centeredView: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		marginTop: 22,
+	},
+	modalView: {
+		margin: 20,
+		backgroundColor: "white",
+		borderRadius: 20,
+		padding: 35,
+		alignItems: "center",
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4,
+		elevation: 5,
+	},
+
 	cardContainer: {
 		width: "95%",
 		backgroundColor: "#fff",
@@ -136,6 +210,14 @@ const styles = StyleSheet.create({
 		backgroundColor: "#43D95D",
 		height: 40,
 		width: 40,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	sendButton: {
+		backgroundColor: "#41BAEE",
+		borderRadius: 5,
+		height: 40,
+		width: 80,
 		alignItems: "center",
 		justifyContent: "center",
 	},

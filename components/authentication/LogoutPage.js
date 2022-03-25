@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from "react-native";
 import { AUTH } from "../../Constants";
 import { signOut } from "firebase/auth";
 
@@ -14,13 +14,15 @@ const LogoutPage = () => {
 			});
 	};
 	return (
-		<View style={styles.cardContainer}>
-			<View style={{ alignItems: "center" }}>
-				<TouchableOpacity style={styles.sendButton} onPress={logout}>
-					<Text style={{ color: "white" }}>Logout</Text>
-				</TouchableOpacity>
+		<ScrollView contentContainerStyle={{ alignItems: "center" }}>
+			<View style={styles.cardContainer}>
+				<View style={{ alignItems: "center" }}>
+					<TouchableOpacity style={styles.sendButton} onPress={logout}>
+						<Text style={{ color: "white" }}>Logout</Text>
+					</TouchableOpacity>
+				</View>
 			</View>
-		</View>
+		</ScrollView>
 	);
 };
 

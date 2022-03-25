@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { Text, View, StyleSheet, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { useContext, useEffect, useState } from "react";
 import { host } from "../../Constants";
 import { AppContext } from "../../context";
@@ -42,29 +42,31 @@ const Company = () => {
 	};
 
 	return (
-		<View style={styles.cardContainer}>
-			<View style={{ marginBottom: 10 }}>
-				<Text style={{ marginBottom: 10 }}>Company Name</Text>
-				<TextInput
-					style={styles.input}
-					value={company.name}
-					onChangeText={(v) => setCompany({ ...company, name: v })}
-				/>
+		<ScrollView contentContainerStyle={{ alignItems: "center" }}>
+			<View style={styles.cardContainer}>
+				<View style={{ marginBottom: 10 }}>
+					<Text style={{ marginBottom: 10 }}>Company Name</Text>
+					<TextInput
+						style={styles.input}
+						value={company.name}
+						onChangeText={(v) => setCompany({ ...company, name: v })}
+					/>
+				</View>
+				<View style={{ marginBottom: 10 }}>
+					<Text style={{ marginBottom: 10 }}>Slug</Text>
+					<TextInput
+						style={styles.input}
+						value={company.slug}
+						onChangeText={(v) => setCompany({ ...company, slug: v })}
+					/>
+				</View>
+				<View style={{ width: "100%", justifyContent: "flex-end", flexDirection: "row", marginRight: 30 }}>
+					<TouchableOpacity style={styles.sendButton} onPress={updateCompany}>
+						<Text style={{ color: "white" }}>Save</Text>
+					</TouchableOpacity>
+				</View>
 			</View>
-			<View style={{ marginBottom: 10 }}>
-				<Text style={{ marginBottom: 10 }}>Slug</Text>
-				<TextInput
-					style={styles.input}
-					value={company.slug}
-					onChangeText={(v) => setCompany({ ...company, slug: v })}
-				/>
-			</View>
-			<View style={{ width: "100%", justifyContent: "flex-end", flexDirection: "row", marginRight: 30 }}>
-				<TouchableOpacity style={styles.sendButton} onPress={updateCompany}>
-					<Text style={{ color: "white" }}>Save</Text>
-				</TouchableOpacity>
-			</View>
-		</View>
+		</ScrollView>
 	);
 };
 

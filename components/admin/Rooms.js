@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { Text, View, StyleSheet, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { useContext, useEffect, useState } from "react";
 import { host } from "../../Constants";
 import { AppContext } from "../../context";
@@ -102,27 +102,29 @@ const Rooms = () => {
 	}, []);
 
 	return (
-		<View style={styles.cardContainer}>
-			{rooms.map((r) => {
-				return <Room key={r.id} r={r} rooms={rooms} setRooms={setRooms} />;
-			})}
+		<ScrollView contentContainerStyle={{ alignItems: "center" }}>
+			<View style={styles.cardContainer}>
+				{rooms.map((r) => {
+					return <Room key={r.id} r={r} rooms={rooms} setRooms={setRooms} />;
+				})}
 
-			<View style={{ width: "100%", justifyContent: "center", flexDirection: "row", marginTop: 30 }}>
-				<TouchableOpacity
-					onPress={addNewRoom}
-					style={{
-						backgroundColor: "#43D95D",
-						borderRadius: 50,
-						height: 40,
-						width: 40,
-						alignItems: "center",
-						justifyContent: "center",
-					}}
-				>
-					<Text style={{ color: "white" }}>+</Text>
-				</TouchableOpacity>
+				<View style={{ width: "100%", justifyContent: "center", flexDirection: "row", marginTop: 30 }}>
+					<TouchableOpacity
+						onPress={addNewRoom}
+						style={{
+							backgroundColor: "#43D95D",
+							borderRadius: 50,
+							height: 40,
+							width: 40,
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+					>
+						<Text style={{ color: "white" }}>+</Text>
+					</TouchableOpacity>
+				</View>
 			</View>
-		</View>
+		</ScrollView>
 	);
 };
 

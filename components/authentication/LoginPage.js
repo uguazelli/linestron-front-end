@@ -1,84 +1,110 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, TextInput } from "react-native";
-import { host } from "../../Constants";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import { AUTH } from "../../Constants";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
-const LoginPage = ({ setAuthenticated }) => {
-	const [userCredentials, setUserCredential] = useState({ email: "", password: "" });
-	const [showErrorMessage, setShowErrorMessage] = useState({ loginFailed: false, loginException: false });
+const LoginPage = ({ setUser, navigation }) => {
+	const [email, setEmail] = useState("");
+	const [pass, setPass] = useState("");
+	const [showLoading, setShowLoading] = useState("none");
 
-	const url = host + "/auth/login";
-	const headers = { Accept: "application/json", "Content-Type": "application/json" };
-	const body = JSON.stringify(userCredentials);
-	const login = async () => {
-		setShowErrorMessage({ loginFailed: false, loginException: false });
-		try {
-			const response = await fetch(url, { method: "POST", credentials: "include", headers: headers, body: body });
-			const json = await response.json();
-			if (json.email === undefined) setShowErrorMessage({ ...showErrorMessage, loginFailed: true });
-			else setAuthenticated({ ok: true });
-		} catch (error) {
-			setShowErrorMessage({ ...showErrorMessage, loginException: true });
-		}
+	const logIn = () => {
+		setShowLoading("flex");
+		signInWithEmailAndPassword(AUTH, email, pass)
+			.then((userCredential) => {
+				const user = userCredential.user;
+				setUser(user);
+			})
+			.catch((error) => {
+				setShowLoading("none");
+				const errorCode = error.code;
+				const errorMessage = error.message;
+				console.log(errorMessage);
+				alert(errorMessage);
+			});
 	};
 
 	return (
 		<View style={styles.container}>
-			<Text style={{ fontSize: 20, margin: 40, color: "white" }}>Login Page</Text>
-			<Text style={{ color: "white" }}>Email </Text>
-			<TextInput
-				style={styles.input}
-				keyboardType="email-address"
-				onChangeText={(v) => setUserCredential({ ...userCredentials, email: v })}
-			/>
-			<Text style={{ color: "white" }}>Password </Text>
-			<TextInput
-				secureTextEntry={true}
-				style={styles.input}
-				onChangeText={(v) => setUserCredential({ ...userCredentials, password: v })}
-			/>
-			<TouchableOpacity style={styles.sendButton} onPress={login}>
-				<Text style={{ color: "white" }}>Send</Text>
-			</TouchableOpacity>
+			<View style={styles.cardContainer}>
+				<View style={{ width: "100%", alignItems: "center" }}>
+					<Image
+						source={require("../../assets/logo-react-icon.png")}
+						style={{ width: 100, height: 100, marginBottom: 10 }}
+					/>
+					<Text style={{ marginBottom: 10, fontSize: 20 }}>Welcome back</Text>
+				</View>
 
-			{showErrorMessage.loginFailed === true ? (
-				<View>
-					<Text style={{ color: "white" }}>Please verify your email or password and try again.</Text>
+				<View style={{ marginBottom: 10 }}>
+					<Text style={{ marginBottom: 10 }}>Email</Text>
+					<TextInput style={styles.input} keyboardType="email-address" onChangeText={setEmail} />
 				</View>
-			) : (
-				<></>
-			)}
-			{showErrorMessage.loginException === true ? (
-				<View>
-					<Text style={{ color: "white" }}>Somenthing unexepcted happened, please try again.</Text>
+
+				<View style={{ marginBottom: 10 }}>
+					<Text style={{ marginBottom: 10 }}>Password</Text>
+					<TextInput style={styles.input} secureTextEntry={true} onChangeText={setPass} />
+					<TouchableOpacity
+						style={{ width: "100%", flexDirection: "row-reverse" }}
+						onPress={() => navigation.navigate("/forgotPassword")}
+					>
+						<Text style={{ marginTop: 10, marginBottom: 10 }}>
+							Forgot your password? <Text style={{ color: "blue" }}>Click here to recover it.</Text>
+						</Text>
+					</TouchableOpacity>
 				</View>
-			) : (
-				<></>
-			)}
+
+				<View style={{ width: "100%" }}>
+					<TouchableOpacity style={styles.sendButton} onPress={logIn}>
+						<Text style={{ color: "white" }}>Login</Text>
+						<ActivityIndicator size="large" color={"red"} style={{ display: showLoading }} />
+					</TouchableOpacity>
+					<TouchableOpacity style={{ width: "100%", flexDirection: "row", justifyContent: "center" }}>
+						<Text style={{ marginTop: 10, marginBottom: 10 }}>
+							Don't have an account? <Text style={{ color: "blue" }}>Sign up.</Text>
+						</Text>
+					</TouchableOpacity>
+				</View>
+			</View>
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
 	container: {
-		maxWidth: "100%",
-		alignItems: "center",
+		width: "100%",
+		height: "100%",
 		justifyContent: "center",
-		backgroundColor: "#2D2D44",
-		padding: 100,
+		alignItems: "center",
+	},
+	cardContainer: {
+		width: "95%",
+		maxWidth: 480,
+		backgroundColor: "white",
+		padding: 30,
+		margin: 10,
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 5,
+		},
+		shadowOpacity: 0.34,
+		shadowRadius: 6.27,
+		elevation: 10,
+		borderRadius: 10,
 	},
 	input: {
+		width: "100%",
 		height: 40,
-		width: 200,
-		margin: 12,
 		borderWidth: 1,
-		padding: 10,
-		borderColor: "white",
-		color: "white",
+		borderRadius: 5,
+		borderColor: "#CCCCCC",
+		paddingLeft: 10,
 	},
 	sendButton: {
-		backgroundColor: "green",
+		backgroundColor: "#41BAEE",
+		borderRadius: 5,
 		height: 40,
-		width: 80,
+		width: "100%",
 		alignItems: "center",
 		justifyContent: "center",
 	},

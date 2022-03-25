@@ -6,6 +6,10 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import Settings from "./Settings";
 import Emit from "./Emit";
 import Admin from "./admin/Admin";
+import Company from "./admin/Company";
+import Rooms from "./admin/Rooms";
+import Users from "./admin/Users";
+import LogoutPage from "./authentication/LogoutPage";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -37,6 +41,10 @@ export default function NavigationTab() {
 			<Stack.Navigator>
 				<Stack.Screen name="/settings" component={Settings} options={{ title: "Company Select" }} />
 				<Stack.Screen name="/home" component={Home} options={{ headerShown: false }} />
+				<Stack.Screen name="/company" component={Company} options={{ title: "Company" }} />
+				<Stack.Screen name="/rooms" component={Rooms} options={{ title: "Rooms" }} />
+				<Stack.Screen name="/users" component={Users} options={{ title: "Users" }} />
+				<Stack.Screen name="/logout" component={LogoutPage} options={{ title: "Logout" }} />
 			</Stack.Navigator>
 		</NavigationContainer>
 	);
