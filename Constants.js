@@ -19,5 +19,6 @@ export const AUTH = getAuth();
 
 export const host = Platform.OS === "android" ? "http://10.0.2.2:3000" : "http://localhost:3000";
 
-export const hostSocketIO = "localhost:9000";
+export const hostSocketIO = Platform.OS === "android" ? "10.0.2.2:9000" : "localhost:9000";
+// PROD
 // export const hostSocketIO = "https://socket-io-tron.herokuapp.com";
