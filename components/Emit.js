@@ -9,6 +9,7 @@ import {
 	View,
 	Modal,
 	Pressable,
+	Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Clipboard from "@react-native-clipboard/clipboard";
@@ -21,12 +22,16 @@ const socket = io(hostSocketIO);
 import { useToast } from "react-native-toast-notifications";
 import QRCode from "react-native-qrcode-svg";
 
-const Room = ({ room }) => {
+const Room = ({ r }) => {
+	const [room, setRoom] = useState(r);
 	const toast = useToast();
 	const url = `http://${hostSocketIO}/company/${room.companySlug}/room/${room.unique_name}`;
 	const [value, setValue] = useState(room.currentNumber);
-	const [modalVisible, setModalVisible] = useState(false);
+	const [qrmodalVisible, setQrModalVisible] = useState(false);
+	const [resetModalVisible, setResetModalVisible] = useState(false);
 	const roomName = room.companySlug + "_" + room.unique_name;
+
+	socket.on(`room_admin_${room.id}`, (msg) => setRoom({ ...room, lastNumber: msg }));
 
 	const copyToClipboard = () => {
 		toast.show("Copied to clipboard", {
@@ -46,7 +51,22 @@ const Room = ({ room }) => {
 				body: JSON.stringify({ number: value }),
 			});
 
-			socket.emit("emmitToRoom", { room: roomName, value: value });
+			socket.emit("emmitToRoom", { room: roomName, value: `${room.prefix}${value}` });
+			return await response.json();
+		} catch (error) {
+			console.log(error);
+		}
+	};
+
+	const resetRoom = async () => {
+		try {
+			const response = await fetch(host + "/room/" + room.id, {
+				method: "PUT",
+				headers: { Accept: "application/json", "Content-Type": "application/json" },
+			});
+			setRoom({ ...room, lastNumber: 0 });
+			setValue(0);
+			setResetModalVisible(!resetModalVisible);
 			return await response.json();
 		} catch (error) {
 			console.log(error);
@@ -60,9 +80,9 @@ const Room = ({ room }) => {
 				<Modal
 					animationType="slide"
 					transparent={true}
-					visible={modalVisible}
+					visible={qrmodalVisible}
 					onRequestClose={() => {
-						setModalVisible(!modalVisible);
+						setQrModalVisible(!qrmodalVisible);
 					}}
 				>
 					<View style={styles.centeredView}>
@@ -71,9 +91,36 @@ const Room = ({ room }) => {
 								<QRCode value={url} size={300} />
 							</View>
 
-							<Pressable onPress={() => setModalVisible(!modalVisible)}>
+							<Pressable onPress={() => setQrModalVisible(!qrmodalVisible)}>
 								<Text style={{ fontSize: 20, color: "red" }}>Close</Text>
 							</Pressable>
+						</View>
+					</View>
+				</Modal>
+
+				<Modal
+					animationType="slide"
+					transparent={true}
+					visible={resetModalVisible}
+					onRequestClose={() => {
+						setResetModalVisible(!resetModalVisible);
+					}}
+				>
+					<View style={styles.centeredView}>
+						<View style={styles.modalView}>
+							<View style={{ marginBottom: 30 }}>
+								<Text>Are you sure you want to reset?</Text>
+								<Text>The current number will be set to zero</Text>
+								<Text>Please make sure there is no numbers not attendend</Text>
+							</View>
+							<View style={{ width: "100%", flexDirection: "row", justifyContent: "space-around" }}>
+								<Pressable onPress={() => setResetModalVisible(!resetModalVisible)}>
+									<Text style={{ fontSize: 20 }}>Cancel</Text>
+								</Pressable>
+								<Pressable onPress={resetRoom}>
+									<Text style={{ fontSize: 20, color: "red" }}>Confirm</Text>
+								</Pressable>
+							</View>
 						</View>
 					</View>
 				</Modal>
@@ -85,26 +132,41 @@ const Room = ({ room }) => {
 						<TextInput editable={false} style={styles.input} value={url} />
 					</TouchableOpacity>
 
-					<Pressable style={styles.sendButton} onPress={() => setModalVisible(true)}>
-						<Text style={{ color: "#fff" }}>Show QR</Text>
-					</Pressable>
+					<View style={{ width: "100%", alignItems: "flex-end" }}>
+						<Pressable style={styles.sendButton} onPress={() => setQrModalVisible(true)}>
+							<Text style={{ color: "#fff" }}>Show QR</Text>
+						</Pressable>
+					</View>
 				</View>
 
 				<View style={{ marginBottom: 30 }}>
 					<Text style={{ marginBottom: 10 }}>Last generated number </Text>
-					<TextInput editable={false} style={styles.input} value={room.lastNumber.toString()} />
+					<TextInput editable={false} style={styles.input} value={`${room.prefix}${room.lastNumber.toString()}`} />
 				</View>
 
-				<View style={{ marginTop: 10 }}>
-					<Text>Current Number: </Text>
-					<View style={{ flexDirection: "row", marginTop: 10 }}>
-						<TouchableOpacity style={styles.setValueButton} onPress={subtraction}>
-							<Text style={{ color: "#fff" }}>-</Text>
-						</TouchableOpacity>
-						<TextInput style={styles.setValueInput} value={value.toString()} editable={false} />
-						<TouchableOpacity style={styles.setValueButton} onPress={addition}>
-							<Text style={{ color: "#fff" }}>+</Text>
-						</TouchableOpacity>
+				<View style={{ width: "100%", flexDirection: "row-reverse" }}>
+					<View style={{ marginLeft: 20 }}>
+						<Text style={{ marginBottom: 10 }}>Reset Room Numbers</Text>
+						<View style={{ width: "100%", flexDirection: "row-reverse" }}>
+							<Pressable
+								style={[styles.sendButton, { backgroundColor: "red" }]}
+								onPress={() => setResetModalVisible(true)}
+							>
+								<Text style={{ color: "#fff" }}>Reset</Text>
+							</Pressable>
+						</View>
+					</View>
+					<View>
+						<Text>Current Number: </Text>
+						<View style={{ flexDirection: "row", marginTop: 10 }}>
+							<TouchableOpacity style={styles.setValueButton} onPress={subtraction}>
+								<Text style={{ color: "#fff" }}>-</Text>
+							</TouchableOpacity>
+							<TextInput style={styles.setValueInput} value={value.toString()} editable={false} />
+							<TouchableOpacity style={styles.setValueButton} onPress={addition}>
+								<Text style={{ color: "#fff" }}>+</Text>
+							</TouchableOpacity>
+						</View>
 					</View>
 				</View>
 			</View>
@@ -136,10 +198,10 @@ const Emit = () => {
 
 	return (
 		<ScrollView contentContainerStyle={{ alignItems: "center" }}>
-			{rooms.map((room) => {
+			{rooms.map((r) => {
 				return (
-					<View key={room.id} style={styles.cardContainer}>
-						<Room room={room} />
+					<View key={r.id} style={styles.cardContainer}>
+						<Room r={r} />
 					</View>
 				);
 			})}

@@ -18,7 +18,12 @@ const Room = ({ r, rooms, setRooms }) => {
 			});
 			const newRoomArray = rooms.filter((element) => element.id !== room.id);
 			const result = await response.json();
-			const newRoom = { id: result.lastInsertRowid, name: room.name, unique_name: room.unique_name };
+			const newRoom = {
+				id: result.lastInsertRowid,
+				name: room.name,
+				unique_name: room.unique_name,
+				prefix: room.prefix,
+			};
 			setRooms(() => [...newRoomArray, newRoom]);
 			alert("done");
 		} catch (error) {
@@ -49,11 +54,19 @@ const Room = ({ r, rooms, setRooms }) => {
 				></TextInput>
 			</View>
 			<View style={{ marginBottom: 10 }}>
-				<Text style={{ margin: 10 }}>unique_name</Text>
+				<Text style={{ margin: 10 }}>Unique Name</Text>
 				<TextInput
 					style={styles.input}
 					value={room.unique_name}
 					onChangeText={(v) => setRoom({ ...room, unique_name: v.replace(/\s/g, "") })}
+				></TextInput>
+			</View>
+			<View style={{ marginBottom: 10 }}>
+				<Text style={{ margin: 10 }}>Prefix</Text>
+				<TextInput
+					style={styles.input}
+					value={room.prefix}
+					onChangeText={(v) => setRoom({ ...room, prefix: v })}
 				></TextInput>
 			</View>
 			<View style={{ width: "100%", justifyContent: "flex-end", flexDirection: "row", marginRight: 30 }}>
