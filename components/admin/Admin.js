@@ -1,6 +1,10 @@
+import { useContext } from "react";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
+import { AppContext } from "../../context";
 
 const Admin = ({ navigation }) => {
+	const loggedUser = useContext(AppContext);
+	// loggedUser.user.email
 	const goTo = (page) => {
 		navigation.navigate(page);
 	};
@@ -17,9 +21,14 @@ const Admin = ({ navigation }) => {
 				<TouchableOpacity onPress={() => goTo("/rooms")} style={styles.item}>
 					<Text style={styles.itemText}>Rooms</Text>
 				</TouchableOpacity>
-				<TouchableOpacity onPress={() => goTo("/users")} style={styles.item}>
-					<Text style={styles.itemText}>Users</Text>
-				</TouchableOpacity>
+				{loggedUser.user.role === "admin" ? (
+					<TouchableOpacity onPress={() => goTo("/users")} style={styles.item}>
+						<Text style={styles.itemText}>Users</Text>
+					</TouchableOpacity>
+				) : (
+					<></>
+				)}
+
 				<TouchableOpacity onPress={() => goTo("/logout")} style={styles.item}>
 					<Text style={[styles.itemText, { color: "red" }]}>Logout</Text>
 				</TouchableOpacity>

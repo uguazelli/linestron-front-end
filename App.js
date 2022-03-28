@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AUTH } from "./Constants";
+import { AUTH, host } from "./Constants";
 import { onAuthStateChanged } from "firebase/auth";
 import { AppContext } from "./context";
 import NavigationTab from "./components/NavigationTab";
@@ -8,10 +8,20 @@ import { ToastProvider } from "react-native-toast-notifications";
 
 export default function App() {
 	const [user, setUser] = useState(null);
+	const userAdditionalInfo = async (email) => {
+		const response = await fetch(host + "/user/email/" + email);
+		const result = await response.json();
+		return result;
+	};
 	useEffect(
-		onAuthStateChanged(AUTH, (user) => {
-			if (user) setUser(user);
-			else setUser(false);
+		onAuthStateChanged(AUTH, async (user) => {
+			if (user) {
+				let additional = await userAdditionalInfo(user.email);
+				user.role = additional.role;
+				setUser(user);
+			} else {
+				setUser(false);
+			}
 		}),
 		[]
 	);

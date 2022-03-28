@@ -23,6 +23,7 @@ import { useToast } from "react-native-toast-notifications";
 import QRCode from "react-native-qrcode-svg";
 
 const Room = ({ r }) => {
+	const user = useContext(AppContext);
 	const [room, setRoom] = useState(r);
 	const toast = useToast();
 	const url = `http://${hostSocketIO}/company/${room.companySlug}/room/${room.unique_name}`;
@@ -45,10 +46,11 @@ const Room = ({ r }) => {
 
 	const emitValue = async () => {
 		try {
+			const companyId = await AsyncStorage.getItem("companyId");
 			const response = await fetch(host + "/room/" + room.unique_name + "/current", {
 				method: "POST",
 				headers: { Accept: "application/json", "Content-Type": "application/json" },
-				body: JSON.stringify({ number: value }),
+				body: JSON.stringify({ number: value, companyId: companyId, user: user }),
 			});
 
 			socket.emit("emmitToRoom", { room: roomName, value: `${room.prefix}${value}` });

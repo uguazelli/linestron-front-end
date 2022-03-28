@@ -5,6 +5,7 @@ import { AppContext } from "../../context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const User = ({ u, users, setUsers }) => {
+	const loggedUser = useContext(AppContext);
 	const [user, setUser] = useState(u);
 	const [isAdmin, setIsAdmin] = useState(user.role == "admin" ? true : false);
 	const toggleSwitch = () => {
@@ -72,12 +73,18 @@ const User = ({ u, users, setUsers }) => {
 				>
 					<Text style={{ color: "white" }}>Save</Text>
 				</TouchableOpacity>
-				<TouchableOpacity
-					style={[styles.sendButton, { marginRight: 5, backgroundColor: "#AB433F" }]}
-					onPress={deleteUser}
-				>
-					<Text style={{ color: "white" }}>Delete</Text>
-				</TouchableOpacity>
+				{loggedUser.user.email == user.email ? (
+					<View style={[styles.sendButton, { marginRight: 5, backgroundColor: "#DCDCDC" }]}>
+						<Text>Delete</Text>
+					</View>
+				) : (
+					<TouchableOpacity
+						style={[styles.sendButton, { marginRight: 5, backgroundColor: "#AB433F" }]}
+						onPress={deleteUser}
+					>
+						<Text style={{ color: "white" }}>Delete</Text>
+					</TouchableOpacity>
+				)}
 			</View>
 		</View>
 	);
